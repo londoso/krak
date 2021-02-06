@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
+
 Parameters:
+  #EC2 Parameters
   InstanceTypeParameter:
     Type: String
     Default: t3a.micro
@@ -12,6 +14,59 @@ Parameters:
     Type: String
     Default: krak
     Description: The key used to access the instance.
+  #RDS Parameters
+  DBName:
+    Default: Master
+    Description: Database name for Master
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBNameReplica:
+    Default: Replica
+    Description: Database name for Replica
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBUser:
+    Default: anderson
+    NoEcho: 'true'
+    Description: The database admin account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword:
+    Default: pasS123crak
+    NoEcho: 'true'
+    Description: The database admin account password
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]+'
+    ConstraintDescription: must contain only alphanumeric characters.
+  DBAllocatedStorage:
+    Default: '20'
+    Description: The size of the database (Gb)
+    Type: Number
+    MinValue: '20'
+    MaxValue: '16384'
+    ConstraintDescription: must be between 20 and 16384Gb.
+  DBInstanceClass:
+    Description: The database instance type
+    Type: String
+    Default: db.t2.micro
+    ConstraintDescription: must select a valid database instance type.
+  MultiAZ:
+    Description: Multi-AZ master database
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    ConstraintDescription: must be true or false.
 
 Resources:
   VPC:
@@ -44,6 +99,7 @@ Resources:
       Tags:
         - Key: Name
           Value: SubnetA
+
   RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -113,9 +169,87 @@ Resources:
           sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
       Tags:
         - Key: Appplication
-          Value:  Windows Server
+          Value:  Linux Server
         - Key: Owner
           Value:  Anderson Londoño Osorio
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for RDS
+      Tags:
+        - Key: Name
+          Value: SG RDS
+      VpcId: !Ref VPC
+
+  DBSecurityGroupIG1:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: DBSecurityGroup    
+    Properties:
+      GroupId: !GetAtt DBSecurityGroup.GroupId
+      FromPort: 5432
+      IpProtocol: tcp
+      ToPort: 5432
+      SourceSecurityGroupId: !GetAtt InstanceSecurityGroup.GroupId
+      Description: Enable DataBase access via port 5432 to EC2
+
+  SubnetDB1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: SubnetDB1
+
+  SubnetDB2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: SubnetDB2
+
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Managed DB subnet group.
+      SubnetIds:
+        - !Ref SubnetDB1
+        - !Ref SubnetDB2
+
+  MasterDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref DBName
+      DBInstanceIdentifier: !Ref DBName
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: postgres
+      EngineVersion: 12
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      MultiAZ: !Ref MultiAZ
+      Tags:
+        - Key: Name
+          Value: Master Database
+      VPCSecurityGroups: 
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+
+  ReplicaDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      SourceDBInstanceIdentifier: !Ref 'MasterDB'
+      DBInstanceIdentifier: !Ref DBNameReplica
+      DBInstanceClass: !Ref 'DBInstanceClass'
+      Tags:
+      - Key: Name
+        Value: Read Replica Database
+
 Outputs:
   PublicIp:
     Value:
