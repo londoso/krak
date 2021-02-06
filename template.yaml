@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  InstanceTypeParameter:
+    Type: String
+    Default: t3a.micro
+    Description: Instance size for the linux instance.
+  AMI:
+    Type: String
+    Default: ami-047a51fa27710816e
+    Description: Amazon Linux 2 AMI.
+  Key:
+    Type: String
+    Default: krak
+    Description: The key used to access the instance.
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: Target VPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: SubnetA
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: RouteTableA
+
+  InternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+
+  SubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetA
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 22
+        IpProtocol: tcp
+        ToPort: 22
+      Tags:
+        - Key: Name
+          Value: SG Linux Instance
+      VpcId: !Ref VPC
+
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref LinuxInstance
+      
+  LinuxInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AMI
+      InstanceType:
+        Ref: InstanceTypeParameter
+      KeyName: !Ref Key
+      SubnetId: !Ref SubnetA
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 5
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo yum install -y wget tar gcc make
+          wget https://ftp.postgresql.org/pub/source/v13.1/postgresql-13.1.tar.gz
+          tar -zxvf postgresql-13.1.tar.gz
+          cd postgresql-13.1/
+          ./configure --without-readline --without-zlib
+          make
+          sudo make install
+          sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
+      Tags:
+        - Key: Appplication
+          Value:  Windows Server
+        - Key: Owner
+          Value:  Anderson Londoño Osorio
+Outputs:
+  PublicIp:
+    Value:
+      Fn::GetAtt:
+        - LinuxInstance
+        - PublicIp
+    Description: Linux Server Public Ip Address
