@@ -26,9 +26,7 @@ def copy_csv():
         cur.copy_expert('COPY repo.usuario FROM STDIN WITH DELIMITER \',\' CSV HEADER', csv_io, size=8192)
         conn.commit()
 
-        cur.execute("select * from repo.usuario;")
-        cur.fetchall()
-
+        cur.execute("select * from repo.usuario;")        
         db_output = cur.fetchall()
         print(db_output)
        

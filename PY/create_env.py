@@ -14,7 +14,7 @@ def create_env():
         cur.execute('drop schema if exists repo cascade;')
         cur.execute('create schema if not exists repo;')
         #cur.execute('drop table if exists repo.usuario;')
-        cur.execute('create table if not exists repo.usuario (id integer, nombre varchar);')
+        cur.execute('create table repo.usuario (id integer, nombre varchar);')
 
         print('Env repo.usuario Created')
        
