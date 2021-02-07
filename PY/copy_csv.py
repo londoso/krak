@@ -27,7 +27,7 @@ def copy_csv():
         print()
         print('  ' + str(cur.rowcount) + ' Rows loaded from CSV')
         print()
-        #conn.commit()
+        conn.commit()
 
         #cur.execute("select * from repo.usuario;")  
         #db_output = cur.fetchone()
