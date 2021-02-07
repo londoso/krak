@@ -24,7 +24,8 @@ def copy_csv():
         df.to_csv(csv_io, header=False, index=False)
         csv_io.seek(0)
         cur.copy_expert('COPY repo.usuario FROM STDIN WITH DELIMITER \',\' CSV HEADER', csv_io, size=8192)
-        print(str(cur.rowcount) + " Rows loaded from CSV")
+        print()
+        print('  ' + str(cur.rowcount) + ' Rows loaded from CSV')
         print()
         #conn.commit()
 
