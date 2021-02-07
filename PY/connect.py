@@ -1,15 +1,13 @@
 #!/usr/bin/python
 import psycopg2
-import configparser
-
-exec(open('load_db_config.py').read())
+from load_db_config import config
 
 def connect():
     """ Connect to the PostgreSQL database server """
     conn = None
     try:
         # read connection parameters
-        params = configparser()
+        params = config()
 
         # connect to the PostgreSQL server
         print('Connecting to the PostgreSQL database...')
