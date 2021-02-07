@@ -11,9 +11,9 @@ def create_env():
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         
-        cur.execute('drop schema if exists repo;')
+        cur.execute('drop schema if exists repo cascade;')
         cur.execute('create schema if not exists repo;')
-        cur.execute('drop table if exists repo.usuario;')
+        #cur.execute('drop table if exists repo.usuario;')
         cur.execute('create table if not exists repo.usuario (id integer, nombre varchar);')
 
         print('Env repo.usuario Created')
