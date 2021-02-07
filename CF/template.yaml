@@ -136,14 +136,9 @@ Resources:
           Value: SG Linux Instance
       VpcId: !Ref VPC
 
-  ElasticIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-      InstanceId: !Ref LinuxInstance
-      
   LinuxInstance:
     Type: AWS::EC2::Instance
+    DependsOn: MasterDB 
     Properties:
       ImageId: !Ref AMI
       InstanceType:
@@ -157,19 +152,39 @@ Resources:
           Ebs:
             VolumeSize: 5
       UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          sudo yum install -y wget tar gcc make python3
-          curl -O https://bootstrap.pypa.io/get-pip.py
-          python3 get-pip.py --user
-          pip install psycopg2 psycopg2-binary numpy pandas s3fs
-          wget https://ftp.postgresql.org/pub/source/v13.1/postgresql-13.1.tar.gz
-          tar -zxvf postgresql-13.1.tar.gz
-          cd postgresql-13.1/
-          ./configure --without-readline --without-zlib
-          make
-          sudo make install
-          sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+              CONF="~/pgconfing.ini"
+              echo "# Config Postgresql DB Parameters" > "$CONF"
+              cat <<EOT >> "$CONF"
+              [postgresql]
+              EOT
+              sudo chown ec2-user:ec2-user ~/pgconfing.ini
+              sudo chmod 600 ~/pgconfing.ini
+              echo "host=${MasterEndPoint}" >> $CONF
+              echo "port=${MasterPort}" >> $CONF
+              echo "database=${MasterDBName}" >> $CONF
+              echo "user=${MasterDBUser}" >> $CONF
+              echo "password=${MasterDBPassword}" >> $CONF
+              sudo yum install -y wget tar gcc make python3 git
+              curl -O https://bootstrap.pypa.io/get-pip.py
+              python3 get-pip.py --user
+              pip install psycopg2 psycopg2-binary numpy pandas s3fs
+              wget https://ftp.postgresql.org/pub/source/v13.1/postgresql-13.1.tar.gz
+              tar -zxvf postgresql-13.1.tar.gz
+              cd postgresql-13.1/
+              ./configure --without-readline --without-zlib
+              make
+              sudo make install
+              sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
+              cd && git clone https://github.com/londoso/krak.git
+            - MasterEndPoint: !GetAtt MasterDB.Endpoint.Address
+              MasterPort: !GetAtt MasterDB.Endpoint.Port
+              MasterDBName: !Ref DBName
+              MasterDBUser: !Ref DBUser
+              MasterDBPassword: !Ref DBPassword
       Tags:
         - Key: Appplication
           Value:  Linux Server
