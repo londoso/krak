@@ -1,6 +1,6 @@
 #!/usr/bin/python
-import psycopg2
-from configparser import configparser
+import psycopg3
+import configparser
 
 exec(open('load_db_config.py').read())
 
