@@ -2,6 +2,7 @@
 import psycopg2
 from load_db_config import config
 import s3fs
+import os
 import pandas as pd
 from io import StringIO
 
@@ -17,7 +18,8 @@ def copy_csv():
         cur.execute('SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid();')
         cur.execute('truncate table repo.usuario;')
 
-        df = pd.read_csv('s3://' + $bucket + '/test.csv', sep=',', usecols=['id', 'nombre'], index_col=False)
+        bucket = os.environ['bucket']
+        df = pd.read_csv('s3://' + bucket + '/test.csv', sep=',', usecols=['id', 'nombre'], index_col=False)
         csv_io = StringIO()
         df.to_csv(csv_io, header=False, index=False)
         csv_io.seek(0)
