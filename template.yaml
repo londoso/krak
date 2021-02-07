@@ -159,7 +159,10 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          sudo yum install -y wget tar gcc make
+          sudo yum install -y wget tar gcc make python3
+          curl -O https://bootstrap.pypa.io/get-pip.py
+          python3 get-pip.py --user
+          pip install psycopg2 psycopg2-binary numpy pandas s3fs
           wget https://ftp.postgresql.org/pub/source/v13.1/postgresql-13.1.tar.gz
           tar -zxvf postgresql-13.1.tar.gz
           cd postgresql-13.1/
@@ -172,6 +175,37 @@ Resources:
           Value:  Linux Server
         - Key: Owner
           Value:  Anderson Londoño Osorio
+      IamInstanceProfile: !Ref MyInstanceProfile
+
+  Profile:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
+
+  MyInstanceProfile: 
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: "/"
+      Roles: 
+        - 
+          Ref: Profile
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -240,15 +274,53 @@ Resources:
         - !Ref DBSecurityGroup
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
 
-  ReplicaDB:
-    Type: AWS::RDS::DBInstance
+  # ReplicaDB:
+  #   Type: AWS::RDS::DBInstance
+  #   Properties:
+  #     SourceDBInstanceIdentifier: !Ref 'MasterDB'
+  #     DBInstanceIdentifier: !Ref DBNameReplica
+  #     DBInstanceClass: !Ref 'DBInstanceClass'
+  #     Tags:
+  #     - Key: Name
+  #       Value: Read Replica Database
+
+  IAMUser:
+    Type: AWS::IAM::User
+
+  IAMAcessKey:
+    Type: AWS::IAM::AccessKey
     Properties:
-      SourceDBInstanceIdentifier: !Ref 'MasterDB'
-      DBInstanceIdentifier: !Ref DBNameReplica
-      DBInstanceClass: !Ref 'DBInstanceClass'
-      Tags:
-      - Key: Name
-        Value: Read Replica Database
+      UserName:
+        Ref: IAMUser
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: BucketOwnerFullControl
+      
+  IAMPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: S3BucketPermissions
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: S3BucketPermissions
+          Effect: Allow
+          Action:
+          - s3:*
+          Resource:
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: S3Bucket
+          - Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: S3Bucket
+              - "/*"
+      Users:
+      - Ref: IAMUser
 
 Outputs:
   PublicIp:
@@ -257,3 +329,29 @@ Outputs:
         - LinuxInstance
         - PublicIp
     Description: Linux Server Public Ip Address
+  BucketUrl:
+    Value: !Join 
+      - ''
+      - - 'https://console.aws.amazon.com/s3/buckets/'
+        - !Ref S3Bucket
+    Description: S3 bucket URL
+  AWSAccessKeyId:
+    Value:
+      Ref: IAMAcessKey
+  AWSSecretAccessKey:
+    Value:
+      Fn::GetAtt:
+      - IAMAcessKey
+      - SecretAccessKey
+  BucketName:
+    Value:
+      Ref: S3Bucket
+    Description: S3 bucket Name
+  Region:
+    Value:
+      Ref: AWS::Region
+  EndPointMaster:
+    Description: RDS Master EndPoint.
+    Value: !GetAtt MasterDB.Endpoint.Address
+    Export:
+      Name: RDS-Master
