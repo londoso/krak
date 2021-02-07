@@ -2,7 +2,7 @@
 import psycopg2
 from load_db_config import config
 
-def copy_csv():
+def create_env():
     """ Copy CSV File Into PostgreSql Table """
     conn = None
     try:
@@ -11,10 +11,12 @@ def copy_csv():
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         
-        cur.execute('truncate table repo.usuario;')
+        cur.execute('drop schema if exists repo;')
+        cur.execute('create schema if not exists repo;')
+        cur.execute('drop table if exists repo.usuario;')
+        cur.execute('create table if not exists repo.usuario (id integer, nombre varchar);')
 
-        db_version = cur.fetchone()
-        print(db_version)
+        print('Env repo.usuario Created')
        
         # Close Connection
         cur.close()
@@ -27,4 +29,4 @@ def copy_csv():
 
 
 if __name__ == '__main__':
-    copy_csv()
+    create_env()
