@@ -14,7 +14,7 @@ def create_env():
         cur.execute('drop schema if exists repo cascade;')
         cur.execute('create schema if not exists repo;')
         #cur.execute('drop table if exists repo.indicador;')
-        cur.execute('create table repo.indicador (PK SERIAL PRIMARY KEY, COUNTRYNAME varchar(80) not null, INDICATORNAME varchar(200) not null, YEAR int not null, VALUE numeric(3) not null);')
+        cur.execute('create table repo.indicador (PK SERIAL PRIMARY KEY, COUNTRYNAME varchar(80) not null, INDICATORNAME varchar(200) not null, YEAR int not null, VALUE numeric(3));')
 
         print('Environment repo-indicador Created')
        

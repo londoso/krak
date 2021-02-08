@@ -62,7 +62,7 @@ A continuación se presenta el modelo de datos de una tabla en un modelo relacio
 | COUNTRYNAME | varchar(80)  | Si |   |
 | INDICATORNAME  | varchar(200) | Si |   |
 | YEAR  | int | Si |   |
-| VALUE  | decimal(3,20) | Si |  |
+| VALUE  | decimal(3,20) | |  |
 
 
 Como mejora al modelo se podría plantear a futuro tener la información en campos tipo JSON, lo cual permite tener una mejor compresión en el tamaño de las tablas.
