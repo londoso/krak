@@ -58,10 +58,11 @@ A continuación se presenta el modelo de datos de una tabla en un modelo relacio
 
 | Columna | Tipo de dato | No nulo | PK  |
 | ------------ | ------------ | ------------ | ------------ |
-| Country Name | varchar(80)  | Si |   |
-| Indicator Name  | varchar(200) | Si |   |
-| year  | integer(4)  |   |   |
-| value  | decimal(10,10) |   |  |
+| PK | serial  | Si | Si |
+| COUNTRYNAME | varchar(80)  | Si |   |
+| INDICATORNAME  | varchar(200) | Si |   |
+| YEAR  | int | Si |   |
+| VALUE  | decimal(3,20) | Si |  |
 
 
 Como mejora al modelo se podría plantear a futuro tener la información en campos tipo JSON, lo cual permite tener una mejor compresión en el tamaño de las tablas.
