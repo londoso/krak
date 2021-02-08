@@ -161,15 +161,15 @@ Resources:
               cat <<EOT >> "$CONF"
               [postgresql]
               EOT
-              sudo chown ec2-user:ec2-user ~/pgconfing.ini
-              sudo chmod 600 ~/pgconfing.ini
+              sudo chown ec2-user:ec2-user /home/ec2-user/pgconfing.ini
+              sudo chmod 600 /home/ec2-user/pgconfing.ini
               echo "host=${MasterEndPoint}" >> $CONF
               echo "port=${MasterPort}" >> $CONF
               echo "database=${MasterDBName}" >> $CONF
               echo "user=${MasterDBUser}" >> $CONF
               echo "password=${MasterDBPassword}" >> $CONF
               sudo yum install -y wget tar gcc make python3 git
-              echo "export bucket=${BucketS3}" >> ~/.bash_profile && source ~/.bash_profile
+              echo "export bucket=${BucketS3}" >> /home/ec2-user/.bash_profile && source /home/ec2-user/.bash_profile
               curl -O https://bootstrap.pypa.io/get-pip.py
               python3 get-pip.py --user
               pip install psycopg2-binary numpy pandas s3fs config
@@ -181,6 +181,9 @@ Resources:
               sudo make install
               sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
               cd && git clone https://github.com/londoso/krak.git
+              wget https://databank.worldbank.org/data/download/Edstats_csv.zip
+              unzip Edstats_csv.zip
+              aws s3 cp EdStatsData.csv s3://$bucket
             - MasterEndPoint: !GetAtt MasterDB.Endpoint.Address
               MasterPort: !GetAtt MasterDB.Endpoint.Port
               MasterDBName: !Ref DBName
@@ -291,15 +294,15 @@ Resources:
         - !Ref DBSecurityGroup
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
 
-  # ReplicaDB:
-  #   Type: AWS::RDS::DBInstance
-  #   Properties:
-  #     SourceDBInstanceIdentifier: !Ref 'MasterDB'
-  #     DBInstanceIdentifier: !Ref DBNameReplica
-  #     DBInstanceClass: !Ref 'DBInstanceClass'
-  #     Tags:
-  #     - Key: Name
-  #       Value: Read Replica Database
+  ReplicaDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      SourceDBInstanceIdentifier: !Ref 'MasterDB'
+      DBInstanceIdentifier: !Ref DBNameReplica
+      DBInstanceClass: !Ref 'DBInstanceClass'
+      Tags:
+      - Key: Name
+        Value: Read Replica Database
 
   IAMUser:
     Type: AWS::IAM::User
