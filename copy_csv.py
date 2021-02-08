@@ -31,7 +31,7 @@ def copy_csv():
         ser.to_csv(csv_io, header=True, index=False)
         csv_io.seek(0)
         cur.copy_expert('COPY repo.indicador FROM STDIN WITH DELIMITER \',\' CSV HEADER', csv_io, size=8192)
-        cur.copy_expert('COPY repo.indicador (COUNTRYNAME, INDICATORNAME, YEAR, VALUE) FROM STDIN WITH DELIMITER \',\' CSV HEADER', csv_io, size=8192)
+        cur.copy_expert('COPY repo.indicador (COUNTRYNAME, INDICATORNAME, YEAR, VALUE) FROM STDIN WITH CSV HEADER', csv_io, size=8192)
         print()
         print('  ' + str(cur.rowcount) + ' Rows loaded from CSV')
         print()
