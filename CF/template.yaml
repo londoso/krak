@@ -180,7 +180,8 @@ Resources:
               make
               sudo make install
               sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
-              cd && git clone https://github.com/londoso/krak.git
+              cd /home/ec2-user && git clone https://github.com/londoso/krak.git
+              echo "export repo=/home/ec2-user/krak" >> /home/ec2-user/.bash_profile
               wget https://databank.worldbank.org/data/download/Edstats_csv.zip
               unzip Edstats_csv.zip
               aws s3 cp EdStatsData.csv s3://$bucket
