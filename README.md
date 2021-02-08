@@ -73,7 +73,7 @@ Como la fuente de datos CSV se encuentran los años en modo de columna, se debe 
 
 Lo primero que se debe aplicar es la función melt(), con esta se garantiza que tenemos la información de acuerdo al modelo de la tabla definido en el modelo de datos previamente. 
 
-[![Melt head](https://drive.google.com/uc?export=view&id=17XiAjxunulpeL35TK_dRYEqlvSC61tze "Melt head")](https://drive.google.com/file/d/17XiAjxunulpeL35TK_dRYEqlvSC61tze/view?usp=sharing "Melt head")
+[![Melt head](https://github.com/londoso/krak/blob/main/IMG/melt_count.jpg "Melt head")](https://github.com/londoso/krak/blob/main/IMG/melt_count.jpg "Melt head")
 
 
 
