@@ -156,7 +156,7 @@ Resources:
           Fn::Sub:
             - |
               #!/bin/bash
-              CONF="~/pgconfing.ini"
+              CONF="/home/ec2-user/pgconfing.ini"
               echo "# Config Postgresql DB Parameters" > "$CONF"
               cat <<EOT >> "$CONF"
               [postgresql]
@@ -180,7 +180,7 @@ Resources:
               make
               sudo make install
               sudo ln -sf /usr/local/pgsql/bin/psql /usr/bin/psql
-              cd /home/ec2-user && git clone https://github.com/londoso/krak.git
+              su - ec2-user -c "cd /home/ec2-user && git clone https://github.com/londoso/krak.git"
               echo "export repo=/home/ec2-user/krak" >> /home/ec2-user/.bash_profile
               wget https://databank.worldbank.org/data/download/Edstats_csv.zip
               unzip Edstats_csv.zip
