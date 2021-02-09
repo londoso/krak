@@ -2,6 +2,8 @@
 
 Para este ejercicio se realizarán capturas de datos desde diferentes fuentes de información de caracter publico, en este caso se importarán archivos planos CSV y JSON directamente desde una base de datos Postgresql. Este ultimo será obtenido a traves de [foraign data wrapper](https://wiki.postgresql.org/wiki/Foreign_data_wrappers "foraign data wrapper") que permite a su vez acceder a metadata externa desde diversos motores de bases de datos.
 
+Aducionalmente, se hace uso de Python como lenguaje y sus librerias (psycopg2, pandas, os, s3fs).
+
 ## Definición de la arquitectura
 
 Los componentes de arquitectura se plantean en su totalidad para la nube de AWS con bases de datos RDS Postgresql, instancias de computo EC2 con Amazon Linux y bucket S3.
@@ -85,6 +87,30 @@ Ya que la fuente de datos CSV se encuentran los años en modo de columna, se deb
 Lo primero que se debe aplicar es la función melt(), con esta se garantiza que tenemos la información de acuerdo al modelo de la tabla definido en el modelo de datos previamente. 
 
 [![Melt head](https://github.com/londoso/krak/blob/main/IMG/melt_count.jpg "Melt head")](https://github.com/londoso/krak/blob/main/IMG/melt_count.jpg "Melt head")
+
+Con la nueva estructura se puede proceder a cargar los datos a la tabla, para ello se hace uso de la función COPY de Postgresql, lo que permite que se inserten los datos de forma masiva en un buen tiempo.
+
+#### Ejecución de modelo manualmente
+
+A continuación se describen los pasos para ejecutar el modelo. Luego de que se encuentre la infraestructura disponible, se podrán ejecutar una serie de scripts en Python para sumular el proceso.
+
+1. Preparación del ambiente de base de datos.
+
+En este paso se crea el esquema y la tabla encargada de recibir los datos de los indicadores.
+
+```shell
+cd krak && git pull
+python3 create_env.py
+```
+
+2. Carga de archivo CSV.
+
+En este paso se realiza todo el proceso para llevar el archivo desde el Bucket S3 hasta la tabla en la base de datos Postgresql.
+
+- Se crea un Dataframe a partir de un archivo CSV, cargado directamente desde el bucket S3
+- Se generan las transformaciones necesarias al Dataframe.
+- Se genera un archivo CSV temporal con la estructura definitiva.
+- Se carga el archivo temporal a la tabla de indicadores en la base de datos Postgresql. 
 
 
 
