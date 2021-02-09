@@ -90,7 +90,7 @@ Lo primero que se debe aplicar es la función melt(), con esta se garantiza que 
 
 Con la nueva estructura se puede proceder a cargar los datos a la tabla, para ello se hace uso de la función COPY de Postgresql, lo que permite que se inserten los datos de forma masiva en un buen tiempo.
 
-#### Ejecución de modelo manualmente
+## Ejecución de modelo manualmente
 
 A continuación se describen los pasos para ejecutar el modelo. Luego de que se encuentre la infraestructura disponible, se podrán ejecutar una serie de scripts en Python para sumular el proceso.
 
@@ -121,7 +121,35 @@ cd ~/krak && git pull
 python3 copy_csv.py
 ```
 
+## Conclusión
 
-### Fuentes de Información
+Para finalizar se plantean algunas preguntas desde el lado de infraestructura.
+
+- ¿ Qué pasa si los datos se incrementaran en 100x ?
+
+	Desde la máquina EC2 de computo se puede manejar un grupo de autoescalamiento, que permita atender la demanda ya que se deberían procesar más datos. Por parte de la base de datos se puede realizar un escalamiento horizontal, aumentando los recursos de las RDS y vertical, aumentando las replicas de lectura.
+
+- ¿ Qué pasa si las tuberías se ejecutaran diariamente a las 7 de la mañana ?
+
+	No se debería tener impacto ya que los usuarios solo tienen acceso a replicas de lectura de la base de datos, las inserciones se realizan en la RDS Master.
+
+- ¿ Qué pasa si la base de datos necesitara ser accedida por más de 100 personas ?
+
+	Tal como la pregunta anterior, los usuarios solo hacen uso de las replicas de lectura. Si hay problemas de desempeño, se pueden escalar los recursos de las RDS. Para este punto se puede mejorar el proceso de escalamiento con el uso de Aurora Postgresql ya que este servicio maneja autoescalamiento automático.
+
+Desde el punto de análisis del modelo se pueden plantear otras preguntas.
+
+- ¿ Porqué se eligió este modelo ?
+
+	Se elige un modelo datos relaciolal dado a su uso vigente y a que muchas herramientas se encuentran optimizadas para este fin. Como mejora al modelo se sugiere migrar a modelos no relacionales, lo cual puede mejorar el rendimiento notablemente.
+
+- ¿ Qué preguntas surgen a partir del análisis del modelo ?
+
+	¿ Cómo se puede segmentar mejor la información ?
+	¿ Cuáles son los principales indicadores ?
+	¿ Es suficiente la información para realizar un análisis o usar una herramienta de visualización de datos ?
+
+
+## Fuentes de Información
 
 - [THE WORLD BANK | Education Statistics (Formato CSV)](https://datacatalog.worldbank.org/dataset/education-statistics "THE WORLD BANK | Education Statistics (Formato CSV)")
