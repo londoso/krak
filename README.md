@@ -98,8 +98,10 @@ A continuación se describen los pasos para ejecutar el modelo. Luego de que se 
 
 En este paso se crea el esquema y la tabla encargada de recibir los datos de los indicadores.
 
+[![](https://github.com/londoso/krak/blob/main/IMG/create_env.jpg)](https://github.com/londoso/krak/blob/main/IMG/create_env.jpg)
+
 ```shell
-cd krak && git pull
+cd ~/krak && git pull
 python3 create_env.py
 ```
 
@@ -112,6 +114,12 @@ En este paso se realiza todo el proceso para llevar el archivo desde el Bucket S
 - Se genera un archivo CSV temporal con la estructura definitiva.
 - Se carga el archivo temporal a la tabla de indicadores en la base de datos Postgresql. 
 
+[![](https://github.com/londoso/krak/blob/main/IMG/copy_csv.jpg)](https://github.com/londoso/krak/blob/main/IMG/copy_csv.jpg)
+
+```shell
+cd ~/krak && git pull
+python3 copy_csv.py
+```
 
 
 ### Fuentes de Información
