@@ -4,7 +4,6 @@ from load_db_config import config
 import s3fs
 import os
 import pandas as pd
-from io import StringIO
 
 def copy_csv():
     """ Copy CSV File Into PostgreSql Table """
@@ -27,15 +26,13 @@ def copy_csv():
         print('>> Melt Dataframe <<')
         print(ser.count())
         print(ser.head())
-        ser.rename(columns={"Country Name": "COUNTRYNAME", "Indicator Name": "INDICATORNAME", "year" : "YEAR", "value" : "VALUE"})
-        csv_io = StringIO()
-        ser.to_csv(csv_io, header=True, index=False)
-        csv_io.seek(0)
-        cur.copy_expert('COPY repo.indicador FROM STDIN WITH DELIMITER \',\' CSV HEADER', csv_io, size=8192)
-        cur.copy_expert('COPY repo.indicador (COUNTRYNAME, INDICATORNAME, YEAR, VALUE) FROM STDIN WITH CSV HEADER', csv_io, size=8192)
+        ser.to_csv(~/temp_file.csv', header=False, index = False, sep='|')
+        myfile = open("/home/ec2-user/purx.csv","r")        
+        cur.copy_from(myfile, "repo.indicador", sep="|", null="")
         print()
         print('  ' + str(cur.rowcount) + ' Rows loaded from CSV')
         print()
+        myfile.close()
         conn.commit()
 
         #cur.execute("select * from repo.indicador;")  
