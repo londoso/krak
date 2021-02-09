@@ -8,6 +8,8 @@ Los componentes de arquitectura se plantean en su totalidad para la nube de AWS 
 
 [![Diagrama de Arquitectura](https://github.com/londoso/krak/blob/main/IMG/arquitectura.png "Diagrama de Arquitectura")](https://github.com/londoso/krak/blob/main/IMG/arquitectura.png "Diagrama de Arquitectura")
 
+Como se puede observar en el anterior diagrama, se tiene una instancia EC2 que cumple dos labores, la de Bastion Host y Computo. Adicionalmente, se tienen dos RDS Postgresql, la Master para realizar las cargas de datos y la Replica para realizar consultas y servir de insumo para llevar estos datos a otras zonas de datos u análisis.
+
 ## Despliegue de infraestructura
 
 Para el despliegue de toda la infraestructura se cuenta con un archivo de codigo cludformation en formato yaml que automatiza todo el proceso, éste se puede realizar a través de AWS CLI o desde la consola web de AWS como lo veremos a continuación.
@@ -54,21 +56,29 @@ The World Bank cuenta con al rededor de 4000 diferentes indicadores que definen 
 
 #### Modelo de datos
 
-A continuación se presenta el modelo de datos de una tabla en un modelo relacional de Postgresql. Para el caso de uso solo se tomaron desde el dataframe los años 2016 y 2017 para facilidad del proceso pero se podrían tomar más de ser requerido.
+A continuación se presenta el modelo de datos de una tabla en un modelo relacional de Postgresql. Para el caso de uso solo se tomaron desde el dataframe los años 2016 y 2017 por facilidad del proceso pero se podrían cargar más de ser requerido.
 
 | Columna | Tipo de dato | No nulo | PK  |
 | ------------ | ------------ | ------------ | ------------ |
 | PK | serial  | Si | Si |
 | COUNTRYNAME | varchar(80)  | Si |   |
 | INDICATORNAME  | varchar(200) | Si |   |
-| YEAR  | int | Si |   |
-| VALUE  | decimal(3,20) | |  |
+| YEAR  | int |  |   |
+| VALUE  | decimal(100,50) | |  |
 
+```sql
+CREATE TABLE REPO.INDICADOR (
+	PK SERIAL PRIMARY KEY, 
+	COUNTRYNAME varchar(80) not null
+	, INDICATORNAME varchar(200) not null, YEAR int, 
+	VALUE numeric(100,50)
+);
+```
+Se define un campo PK autonumerico, el cual genera automaticamente un índice y puede ser beneficioso al memento de realizar extracciones de datos en paralelo.
 
 Como mejora al modelo se podría plantear a futuro tener la información en campos tipo JSON, lo cual permite tener una mejor compresión en el tamaño de las tablas.
 
-
-Como la fuente de datos CSV se encuentran los años en modo de columna, se debe aplicar la función melt() para realizar el proceso de "unpivot". De esta forma se podría almacenar la información en una base de datos relacional para su posterior análisis.
+Ya que la fuente de datos CSV se encuentran los años en modo de columna, se debe aplicar la función melt() para realizar el proceso de "unpivot". De esta forma se podría almacenar la información en una base de datos relacional para su posterior análisis.
 
 [![Dataframe Head](https://github.com/londoso/krak/blob/main/IMG/df_head.jpg "Dataframe Head")](https://github.com/londoso/krak/blob/main/IMG/df_head.jpg "Dataframe Head")
 
